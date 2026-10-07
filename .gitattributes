@@ -1,2 +1,287 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Big Boss Command Center</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0d;--side:#0f0f13;--card:#131317;--card2:#18181d;--bd:#26262d;--tx:#f4f4f5;--mu:#8d8d97;--red:#ef4444;--redbg:rgba(239,68,68,.12);--gold:#e0a93b;--green:#34c58a;--mono:'JetBrains Mono',ui-monospace,Consolas,monospace}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--tx);font:14px/1.45 'Inter',system-ui,sans-serif;min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+aside{background:var(--side);border-right:1px solid var(--bd);padding:24px 14px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
+.logo{padding:0 8px 22px;font-size:22px;letter-spacing:.04em;font-weight:300}.logo small{display:block;font:500 10px var(--mono);color:var(--mu);margin-top:6px;letter-spacing:.08em}
+.lbl{font:500 10px var(--mono);color:var(--mu);padding:6px 8px;letter-spacing:.08em}
+.nav{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:1px solid transparent;background:none;border-radius:8px;color:#b9b9c2;cursor:pointer;text-align:left}
+.nav:hover{background:var(--card2)}.nav.on{background:var(--redbg);border-color:rgba(239,68,68,.45);color:#ff7b7b}.nav i{font-style:normal;width:16px;text-align:center}
+.sys{margin-top:18px;border:1px solid var(--bd);border-radius:10px;padding:12px;font-size:12px}.sys small{display:block;font:10px var(--mono);color:var(--mu);margin-top:4px}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:6px}
+.grow{flex:1}.adm{font-size:12px;color:#c9c9d1;padding:8px}.adm small{display:block;color:var(--mu);font-size:11px}
+main{min-width:0}
+header{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px 32px;border-bottom:1px solid var(--bd);flex-wrap:wrap}
+h1{font-size:24px;font-weight:500}.sub{color:var(--mu);font-size:13px;margin-top:4px;display:flex;gap:10px;align-items:center}
+.live{background:var(--redbg);color:#ff7b7b;border-radius:999px;padding:1px 9px;font-size:11px}.live:before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);margin-right:6px}
+.hr{display:flex;align-items:center;gap:18px}.clock{text-align:right;font:12px var(--mono);color:var(--mu)}.clock b{display:block;color:var(--tx);font-weight:500;font-size:14px}
+.me{display:flex;gap:10px;align-items:center;border-left:1px solid var(--bd);padding-left:18px;font-size:13px}.me small{display:block;color:var(--mu);font-size:11px}
+.me .ic{width:40px;height:40px;border-radius:10px;background:var(--redbg);border:1px solid rgba(239,68,68,.4);display:grid;place-items:center;color:var(--red)}
+.pad{padding:24px 32px 32px;display:flex;flex-direction:column;gap:20px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px}
+.stat .t{display:flex;justify-content:space-between;color:#b9b9c2;font-size:12px}.stat .t i{font-style:normal;color:var(--red)}
+.stat .v{font-size:34px;font-weight:300;margin:6px 0 2px}.stat .v.s{font-size:26px;padding:7px 0}.stat small{color:var(--mu);font-size:11px}
+h2{font-size:19px;font-weight:400}.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}.hd p{color:var(--mu);font-size:13px;margin-top:4px}.mono{font:11px var(--mono);color:var(--mu)}
+.ops{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-weight:500}.ch span.c{color:var(--tx)}
+.tag{font:500 10px var(--mono);background:var(--card2);color:#b9b9c2;border-radius:6px;padding:3px 8px}
+.chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;font-size:11px;padding:2px 9px;background:#25252b;color:#c9c9d1;white-space:nowrap}
+.chip.red{background:rgba(239,68,68,.16);color:#ff8585}.chip.gold{background:rgba(224,169,59,.16);color:var(--gold)}.chip.grn{background:rgba(52,197,138,.14);color:var(--green)}
+.bar{height:5px;background:#26262d;border-radius:9px;overflow:hidden;margin:6px 0 12px}.bar i{display:block;height:100%;background:var(--red)}
+.timer{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--bd);border-radius:10px;padding:10px 14px;background:#0e0e12;gap:8px;flex-wrap:wrap}
+.timer small{display:block;font:10px var(--mono);color:var(--mu)}.timer b{font:500 24px var(--mono);letter-spacing:.04em}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0}.row+.row{border-top:1px solid var(--bd)}.mu{color:var(--mu);font-size:12px}
+.btn{background:var(--card2);border:1px solid var(--bd);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:12.5px}.btn:hover{border-color:#3a3a44}
+.btn:disabled{opacity:.35;cursor:not-allowed}.btn.prim{background:var(--red);border-color:var(--red);color:#fff;font-weight:500}.btn.danger{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.45);color:#ff7b7b}.btn.full{width:100%;padding:11px}
+.btn:focus-visible,.nav:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--red);outline-offset:1px}
+textarea,input,select{background:#0e0e12;border:1px solid var(--bd);border-radius:8px;padding:9px 11px;width:100%}textarea{min-height:92px;resize:vertical;margin:8px 0 4px}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.seg{padding:8px 14px}.seg.on{background:var(--red);border-color:var(--red);color:#fff}.tools input{width:250px;margin-left:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px}
+.cc.cap{border-color:rgba(239,68,68,.5)}.cc .top{display:flex;gap:14px;align-items:center}.cc .nm{flex:1;min-width:0;font-size:17px}.cc .nm small{display:block;color:var(--mu);font-size:12px}
+.pts{text-align:right;font-size:30px;font-weight:300;line-height:1}.pts small{display:block;font:10px var(--mono);color:var(--mu);margin-top:4px}
+.cc .mid{display:flex;justify-content:space-between;margin:12px 0;padding-bottom:12px;border-bottom:1px solid var(--bd)}.cc .acts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.cc .acts .btn{padding:9px 4px;font-size:12px}
+.av{width:46px;height:46px;border-radius:9px;display:grid;place-items:center;font-weight:500;font-size:18px;background:linear-gradient(145deg,hsl(var(--h) 45% 34%),hsl(var(--h) 40% 14%));flex:none}.av.sm{width:34px;height:34px;font-size:14px}
+.evb{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.35);border-radius:12px;padding:16px 20px}
+.evb p{color:#d9a5a5;font-size:12.5px;margin-top:2px}
+.lb{display:flex;align-items:center;gap:14px;padding:11px 4px}.lb+.lb{border-top:1px solid var(--bd)}.rk{width:28px;font:500 15px var(--mono);color:var(--mu)}.rk.t{color:var(--gold)}.lb .nm{width:190px}.lb .bar{flex:1;margin:0}.lb b{font-weight:500;width:56px;text-align:right}
+.form{display:grid;grid-template-columns:2fr 3fr 2fr auto;gap:8px;margin-bottom:14px}
+.foot{display:flex;justify-content:space-between;color:var(--mu);font-size:11px;padding-top:6px;flex-wrap:wrap;gap:6px}
+.empty{color:var(--mu);padding:14px 4px;font-size:13px}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;place-items:center;z-index:30;padding:16px}#modal.on{display:grid}
+.mbox{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:22px;width:min(420px,100%);display:flex;flex-direction:column;gap:12px}.mbox h3{font-weight:500;font-size:17px}.mact{display:flex;gap:8px;justify-content:flex-end}.amts{display:flex;gap:6px}
+#toast{position:fixed;right:20px;bottom:20px;background:#1d1d23;border:1px solid var(--bd);border-left:3px solid var(--red);padding:11px 16px;border-radius:8px;font-size:13px;opacity:0;transform:translateY(8px);transition:.2s;z-index:40;pointer-events:none;max-width:320px}#toast.on{opacity:1;transform:none}
+#banner{display:none;position:sticky;top:0;z-index:20;background:var(--red);color:#fff;padding:12px 32px;align-items:center;justify-content:space-between;gap:14px}#banner.on{display:flex}#banner small{display:block;font:500 10px var(--mono);letter-spacing:.08em;opacity:.85}#banner button{background:rgba(0,0,0,.25);border:0;color:#fff;border-radius:6px;padding:6px 10px;cursor:pointer}
+@media(max-width:900px){.app{grid-template-columns:1fr}aside{position:static;height:auto;flex-direction:row;overflow-x:auto;padding:10px}.logo,.lbl,.sys,.grow,.adm{display:none}.nav{width:auto;white-space:nowrap}header,.pad{padding-left:16px;padding-right:16px}.grid{grid-template-columns:1fr}.form{grid-template-columns:1fr}.lb .nm{width:110px}.tools input{width:100%;margin:0}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+ <div class="logo">BIG BOSS<small>TECH HOUSE</small></div>
+ <div class="lbl">HOUSE CONTROL</div>
+ <div id="nav"></div>
+ <div class="sys"><span class="dot"></span>All systems operational<small>TECH HOUSE / SEASON 01</small></div>
+ <div class="grow"></div>
+ <button class="btn" data-act="reset" style="margin:8px">Reset house data</button>
+ <div class="adm">Administrator access<small>All actions are logged</small></div>
+</aside>
+<main>
+ <div id="banner"><div><small>BIG BOSS ANNOUNCEMENT</small><span id="btxt"></span></div><button data-act="bclose">Dismiss</button></div>
+ <header>
+  <div><h1>Big Boss Command Center</h1><div class="sub">Live House Monitoring System <span class="live">LIVE</span></div></div>
+  <div class="hr"><div class="clock"><span id="date"></span><b id="clock"></b></div>
+  <div class="me"><div class="ic">&#9673;</div><div>Big Boss<small>House controller</small></div></div></div>
+ </header>
+ <div class="pad" id="main"></div>
+</main>
+</div>
+<div id="modal"></div><div id="toast" role="status"></div>
+
+<script>
+const KEY='techhouse_cc_v1';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>{n=Math.max(0,n|0);return[n/3600|0,(n%3600)/60|0,n%60].map(v=>String(v).padStart(2,'0')).join(':')};
+const hue=n=>{let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))%360;return h};
+const av=(n,s='')=>`<div class="av ${s}" style="--h:${hue(n)}">${esc(n[0])}</div>`;
+const ist=(o)=>new Date().toLocaleString('en-US',Object.assign({timeZone:'Asia/Kolkata'},o));
+
+function seed(){
+ const P=[['Sharvesh','AI',72],['Ananya','AI',63],['Kavin','Byte',58],['Meera','Byte',54],['Arjun','AI',49],['Priya','Byte',46],['Diya','AI',42],['Nikhil','Byte',38],['Rohan','AI',34],['Sneha','Byte',29]];
+ const c=P.map((p,i)=>({id:i+1,name:p[0],team:p[1],pts:p[2],st:'active',nom:['Priya','Nikhil','Rohan'].includes(p[0]),imm:['Ananya','Meera'].includes(p[0])}));
+ const T=['Morning standup sprint','Debug the haunted repo','Hackathon warm-up','API escape room','UI redesign duel','Cloud kitchen deploy','Code golf challenge'].map((t,i)=>({id:i+1,title:t,desc:'Team challenge',who:'All contestants',done:true}));
+ T.push({id:8,title:'Build the next big thing',desc:'Team challenge \u00b7 Prototype a smart-house app',who:'All contestants',done:false},
+  {id:9,title:'Midnight bug bash',desc:'Find and fix 5 bugs before sunrise',who:'Team Byte',done:false},
+  {id:10,title:'Final pitch night',desc:'Pitch your product in 3 minutes',who:'All contestants',done:false});
+ return{view:'cmd',c,cap:1,tasks:T,active:8,timer:{total:2700,left:2700,run:false,end:0},ann:[{t:'Housemates, welcome to the Tech House. Big Boss is watching.',ts:Date.now()-3600e3,time:'18:00'}],banner:null,draft:'Housemates, your next challenge is live. Submit your prototypes before 19:15. Make every point count.',log:[],round:4,day:12};
+}
+let S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!S.c)S=seed();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+window.addEventListener('storage',e=>{if(e.key===KEY&&e.newValue){S=JSON.parse(e.newValue);render()}});
+const C=id=>S.c.find(x=>x.id===id);
+const act=()=>S.c.filter(x=>x.st==='active');
+const log=m=>{S.log.unshift(ist({hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'})+' \u00b7 '+m);S.log=S.log.slice(0,25)};
+function commit(m){if(m)log(m);save();render()}
+let FL='all',Q='',toastT;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2600)}
+
+/* ---------- views ---------- */
+const NAV=[['cmd','Command Center','\u25a6'],['con','Contestants','\u263a'],['tasks','Tasks','\u2611'],['lb','Leaderboard','\u2587'],['nom','Nominations','\u25ce'],['cap','Captaincy & Immunity','\u2691'],['ann','Announcements','\u2709'],['evict','Eviction','\u2297']];
+const sorted=()=>act().slice().sort((a,b)=>b.pts-a.pts||a.name.localeCompare(b.name));
+const noms=()=>act().filter(x=>x.nom);
+
+function stats(){
+ const a=act(),d=S.tasks.filter(t=>t.done).length,cp=C(S.cap),top=sorted()[0];
+ const k=(t,i,v,s,x)=>`<div class="card stat"><div class="t">${t}<i>${i}</i></div><div class="v ${x||''}">${v}</div><small>${s}</small></div>`;
+ return`<div class="stats">`+
+  k('Active Contestants','\u263a',a.length,'All residents in the house')+
+  k('Completed Tasks','\u2611',d,`Of ${S.tasks.length} scheduled tasks`)+
+  k('Total Points','\u26a1',a.reduce((s,x)=>s+x.pts,0),'Across all contestants')+
+  k('Current Nominees','\u25ce',noms().length,'Awaiting eviction review')+
+  k('Immune Contestants','\u26e8',a.filter(x=>x.imm).length,'Protected this round')+
+  k('House Captain','\u265b',cp&&cp.st==='active'?esc(cp.name):'None',cp?`Team ${cp.team} \u00b7 Current term`:'Not assigned','s')+
+  k('Top Scorer','\u2605',top?esc(top.name):'-',top?top.pts+' points':'No active contestants','s')+`</div>`;
+}
+function taskCard(){
+ const d=S.tasks.filter(t=>t.done).length,n=S.tasks.length,p=n?Math.round(d/n*100):0,t=S.tasks.find(x=>x.id===S.active),T=S.timer;
+ const lbl=T.run?'Pause':(T.left<T.total&&T.left>0?'Resume':'Start');
+ return`<div class="card"><div class="ch"><span class="c">&#9745; Task control</span><span class="tag">${t?(t.done?'COMPLETE':'IN PROGRESS'):'NO TASK'}</span></div>
+ <div style="font-size:18px;margin-bottom:2px">${t?esc(t.title):'No active task'}</div><div class="mu" style="margin-bottom:12px">${t?esc(t.desc):'Pick a task in Tasks'}</div>
+ <div class="row" style="padding:0"><span class="mu">${d} of ${n} tasks completed</span><b class="mono" style="color:var(--tx)">${p}%</b></div><div class="bar"><i style="width:${p}%"></i></div>
+ <div class="timer"><div><small>TIME REMAINING</small><b id="tleft">${fmt(T.left)}</b></div><div class="tools"><button class="btn" data-act="tgo">${lbl}</button><button class="btn" data-act="trst">Reset</button></div></div>
+ <div class="tools" style="margin-top:10px"><input type="number" id="tmin" min="1" max="600" value="${Math.round(T.total/60)}" style="width:80px;margin:0"><span class="mu">minutes</span><button class="btn" data-act="tset">Set time</button>${t&&!t.done?`<button class="btn prim" data-act="tdone" data-id="${t.id}" style="margin-left:auto">Mark complete</button>`:''}</div></div>`;
+}
+function roundCard(){
+ const n=noms(),cp=C(S.cap),im=act().filter(x=>x.imm);
+ return`<div class="card"><div class="ch"><span class="c">&#9970; Round status</span><span class="tag">ROUND ${String(S.round).padStart(2,'0')}</span></div>
+ <div class="row"><span class="mu">Current nominees</span><span class="chip red">${n.length} contestants</span></div>
+ <div style="display:flex;gap:6px;flex-wrap:wrap;padding-bottom:10px">${n.map(x=>`<span class="chip red">${esc(x.name)}</span>`).join('')||'<span class="mu">No nominees</span>'}</div>
+ <div class="row"><div><div class="mu">House captain</div><b style="font-weight:500">${cp&&cp.st==='active'?esc(cp.name)+' \u00b7 Team '+cp.team:'None'}</b></div><span class="chip gold">Captain</span></div>
+ <div class="row"><div><div class="mu">Immune this round</div><b style="font-weight:500">${esc(im.map(x=>x.name).join(' & '))||'None'}</b></div><span class="chip grn">${im.length} protected</span></div>
+ <div class="mu" style="margin-top:6px">Immunity blocks nomination for this round.</div></div>`;
+}
+function bcCard(){
+ const l=S.ann[0];
+ return`<div class="card"><div class="ch"><span class="c">&#9993; House broadcast</span><span class="tag">DRAFT</span></div>
+ <div class="mu">To: All contestants <span style="float:right">${act().length} recipients</span></div>
+ <textarea id="draft" maxlength="200" placeholder="Type an announcement for the house...">${esc(S.draft||'')}</textarea><div class="mono" id="dcnt" style="margin-bottom:10px">${(S.draft||'').length} / 200</div>
+ <div class="tools" style="margin-bottom:10px"><button class="btn" data-act="tpl" data-v="Nominations are now open. Choose wisely.">Nominations open</button><button class="btn" data-act="tpl" data-v="Eviction night is here. Big Boss has decided.">Eviction night</button></div>
+ <button class="btn prim full" data-act="bcast">Broadcast to house</button><div class="mu" style="margin-top:10px">${l?'Last broadcast: '+esc(l.time):'No broadcasts yet'}</div></div>`;
+}
+function cardHTML(c){
+ const cap=S.cap===c.id;
+ return`<div class="card cc ${cap?'cap':''}"><div class="top">${av(c.name)}<div class="nm">${esc(c.name)}<small>Team ${esc(c.team)}</small></div><div class="pts">${c.pts}<small>POINTS</small></div></div>
+ <div class="mid"><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip">&#9679; Active</span>${cap?'<span class="chip gold">&#9819; Captain</span>':''}${c.imm?'<span class="chip grn">&#9960; Immune</span>':''}${c.nom?'<span class="chip red">&#9679; Nominated</span>':''}</div><span class="mu">In the house</span></div>
+ <div class="acts"><button class="btn" data-act="nomt" data-id="${c.id}" ${c.imm?'disabled title="Immune contestants cannot be nominated"':''}>${c.nom?'Un-nominate':'Nominate'}</button><button class="btn" data-act="pts" data-d="1" data-id="${c.id}">+ Give</button><button class="btn" data-act="pts" data-d="-1" data-id="${c.id}">&minus; Deduct</button><button class="btn danger" data-act="evict" data-id="${c.id}">Evict</button></div></div>`;
+}
+function cards(){
+ let l=sorted();if(FL==='nom')l=l.filter(x=>x.nom);if(FL==='imm')l=l.filter(x=>x.imm);
+ if(Q)l=l.filter(x=>(x.name+' '+x.team).toLowerCase().includes(Q));
+ return l.map(cardHTML).join('')||'<div class="empty">No contestants match this view.</div>';
+}
+function overview(){
+ const a=act();
+ return`<div class="hd"><div><h2>Contestant Overview</h2><p>Monitor every housemate. Manage points, nominations and status.</p></div><span class="mono">${a.length} ACTIVE / ${a.reduce((s,x)=>s+x.pts,0)} TOTAL POINTS</span></div>
+ <div class="tools"><button class="btn seg ${FL==='all'?'on':''}" data-act="fl" data-v="all">All contestants ${a.length}</button><button class="btn seg ${FL==='nom'?'on':''}" data-act="fl" data-v="nom">Nominated ${noms().length}</button><button class="btn seg ${FL==='imm'?'on':''}" data-act="fl" data-v="imm">Immune ${a.filter(x=>x.imm).length}</button><input id="q" placeholder="Search contestants..." value="${esc(Q)}"></div>
+ <div class="grid" id="grid">${cards()}</div>`;
+}
+function evBar(){
+ const n=noms().length;
+ return`<div class="evb"><div><b style="font-weight:500">Eviction control \u00b7 Review before removal</b><p>${n} nominee${n===1?'':'s'} await review. Eviction removes a contestant from the house and requires confirmation.</p></div><button class="btn danger" data-act="view" data-v="evict">Review eviction</button></div>`;
+}
+function leaderboard(){
+ const l=sorted(),mx=Math.max(1,...l.map(x=>x.pts));
+ return`<div class="hd"><div><h2>Live Leaderboard</h2><p>Rankings update instantly as points change. Evicted contestants are removed.</p></div></div><div class="card">`+
+ (l.map((c,i)=>`<div class="lb"><span class="rk ${i<3?'t':''}">${i+1}</span>${av(c.name,'sm')}<div class="nm">${esc(c.name)} <span class="mu">Team ${c.team}</span></div><div class="bar"><i style="width:${c.pts/mx*100}%"></i></div><b>${c.pts}</b>${S.cap===c.id?'<span class="chip gold">Captain</span>':''}</div>`).join('')||'<div class="empty">No active contestants.</div>')+`</div>`;
+}
+function tasksView(){
+ const opts=['All contestants','Team AI','Team Byte'].concat(act().map(x=>x.name)).map(o=>`<option>${esc(o)}</option>`).join('');
+ return`<div class="hd"><div><h2>Task Management</h2><p>Assign tasks, set the active task and mark them complete.</p></div></div>
+ <div class="ops">${taskCard()}</div>
+ <div class="card"><div class="ch"><span class="c">Assign a new task</span></div><div class="form"><input id="nt" placeholder="Task title"><input id="nd" placeholder="Description"><select id="nw">${opts}</select><button class="btn prim" data-act="tadd">Assign task</button></div>
+ ${S.tasks.slice().reverse().map(t=>`<div class="row"><div><b style="font-weight:500">${esc(t.title)}</b> ${S.active===t.id?'<span class="chip red">Active</span>':''}<div class="mu">${esc(t.desc)} \u00b7 ${esc(t.who)}</div></div><div class="tools"><span class="chip ${t.done?'grn':''}">${t.done?'Completed':'Pending'}</span>${t.done?`<button class="btn" data-act="tre" data-id="${t.id}">Reopen</button>`:`<button class="btn" data-act="tact" data-id="${t.id}" ${S.active===t.id?'disabled':''}>Set active</button><button class="btn prim" data-act="tdone" data-id="${t.id}">Complete</button>`}</div></div>`).join('')}</div>`;
+}
+function nomView(){
+ const n=noms(),el=act().filter(x=>!x.nom&&!x.imm);
+ return`<div class="hd"><div><h2>Nominations &amp; Danger Zone</h2><p>Immune contestants cannot be nominated.</p></div></div>
+ <div class="ops"><div class="card" style="border-color:rgba(239,68,68,.4)"><div class="ch"><span class="c" style="color:#ff7b7b">&#9888; Danger Zone</span><span class="chip red">${n.length} nominated</span></div>
+ ${n.map(c=>`<div class="row"><div style="display:flex;gap:10px;align-items:center">${av(c.name,'sm')}<div>${esc(c.name)}<div class="mu">Team ${c.team} \u00b7 ${c.pts} pts</div></div></div><button class="btn" data-act="nomt" data-id="${c.id}">Remove</button></div>`).join('')||'<div class="empty">Nobody is in the Danger Zone.</div>'}</div>
+ <div class="card"><div class="ch"><span class="c">Nominate a contestant</span></div><div class="tools"><select id="nsel" style="flex:1">${el.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')||'<option value="">No eligible contestants</option>'}</select><button class="btn prim" data-act="nomadd">Nominate</button></div>
+ <div class="mu" style="margin-top:12px">Not eligible (immune): ${esc(act().filter(x=>x.imm).map(x=>x.name).join(', '))||'none'}</div></div></div>`;
+}
+function capView(){
+ const cp=C(S.cap);
+ return`<div class="hd"><div><h2>Captaincy &amp; Immunity</h2><p>Assign the House Captain and grant immunity. Granting immunity clears an existing nomination.</p></div><span class="chip gold">Captain: ${cp&&cp.st==='active'?esc(cp.name):'None'}</span></div>
+ <div class="card">${sorted().map(c=>`<div class="row"><div style="display:flex;gap:10px;align-items:center">${av(c.name,'sm')}<div>${esc(c.name)}<div class="mu">Team ${c.team}</div></div>${S.cap===c.id?'<span class="chip gold">Captain</span>':''}${c.imm?'<span class="chip grn">Immune</span>':''}${c.nom?'<span class="chip red">Nominated</span>':''}</div>
+ <div class="tools"><button class="btn" data-act="cap" data-id="${c.id}" ${S.cap===c.id?'disabled':''}>Make captain</button><button class="btn" data-act="imm" data-id="${c.id}">${c.imm?'Revoke immunity':'Grant immunity'}</button></div></div>`).join('')}</div>`;
+}
+function annView(){
+ return`<div class="hd"><div><h2>Announcements</h2><p>Broadcast a message. It appears as a banner for every viewer.</p></div></div><div class="ops">${bcCard()}
+ <div class="card"><div class="ch"><span class="c">Broadcast history</span></div>${S.ann.map(a=>`<div class="row"><span>${esc(a.t)}</span><span class="mono">${esc(a.time)}</span></div>`).join('')||'<div class="empty">No broadcasts yet.</div>'}</div></div>
+ <div class="card"><div class="ch"><span class="c">Activity log</span></div>${S.log.map(l=>`<div class="mu" style="padding:3px 0">${esc(l)}</div>`).join('')||'<div class="empty">No activity yet.</div>'}</div>`;
+}
+function evictView(){
+ const n=noms(),ev=S.c.filter(x=>x.st==='evicted');
+ return`<div class="hd"><div><h2>Eviction</h2><p>Evicting removes a contestant from the house and leaderboard. Confirmation required.</p></div></div>
+ <div class="card"><div class="ch"><span class="c">Nominees awaiting review</span><span class="chip red">${n.length}</span></div>
+ ${n.map(c=>`<div class="row"><div style="display:flex;gap:10px;align-items:center">${av(c.name,'sm')}<div>${esc(c.name)}<div class="mu">Team ${c.team} \u00b7 ${c.pts} pts</div></div></div><button class="btn danger" data-act="evict" data-id="${c.id}">Evict</button></div>`).join('')||'<div class="empty">No nominees to review.</div>'}</div>
+ <div class="card"><div class="ch"><span class="c">Evicted from the house</span><span class="chip">${ev.length}</span></div>${ev.map(c=>`<div class="row"><span>${esc(c.name)} <span class="mu">Team ${c.team}</span></span><span class="mono">${c.pts} pts</span></div>`).join('')||'<div class="empty">Nobody evicted yet.</div>'}</div>`;
+}
+function render(){
+ $('#nav').innerHTML=NAV.map(n=>`<button class="nav ${S.view===n[0]?'on':''}" data-act="view" data-v="${n[0]}"><i>${n[2]}</i>${n[1]}</button>`).join('');
+ const v=S.view;
+ const m={cmd:()=>stats()+`<div class="hd"><div><h2>House operations</h2><p>Keep the house moving. Every control, in one place.</p></div><span class="mono">ROUND ${String(S.round).padStart(2,'0')} / DAY ${S.day}</span></div><div class="ops">${taskCard()}${roundCard()}${bcCard()}</div>`+overview()+evBar(),
+  con:()=>stats()+overview(),tasks:tasksView,lb:leaderboard,nom:nomView,cap:capView,ann:annView,evict:evictView};
+ $('#main').innerHTML=m[v]()+`<div class="foot"><span>Data synced at <span class="syn">${ist({hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span> IST \u00b7 All changes are recorded in the activity log</span><span class="mono">BIG BOSS / TECH HOUSE</span></div>`;
+}
+
+/* ---------- modal ---------- */
+let mcb=null;
+function ask(title,body,ok,cb,danger){
+ $('#modal').innerHTML=`<div class="mbox" role="dialog"><h3>${title}</h3><div>${body}</div><div class="mact"><button class="btn" data-act="mx">Cancel</button><button class="btn ${danger?'danger':'prim'}" data-act="mok">${ok}</button></div></div>`;
+ $('#modal').classList.add('on');mcb=cb;const i=$('#pv');if(i)i.focus();
+}
+const closeM=()=>{$('#modal').classList.remove('on');mcb=null};
+
+/* ---------- timer ---------- */
+function tick(){
+ const T=S.timer;
+ if(T.run){T.left=Math.max(0,Math.ceil((T.end-Date.now())/1000));if(T.left===0){T.run=false;save();render();toast('Time is up!')}}
+ const e=$('#tleft');if(e)e.textContent=fmt(T.left);
+ $('#clock').textContent=ist({hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'})+' IST';
+ $('#date').textContent=ist({month:'long',day:'numeric',year:'numeric'});
+ const b=S.banner,bn=$('#banner');
+ if(b&&Date.now()-b.ts<20000){bn.classList.add('on');$('#btxt').textContent=b.t}else bn.classList.remove('on');
+}
+setInterval(tick,250);
+
+/* ---------- actions ---------- */
+document.addEventListener('click',e=>{
+ const t=e.target.closest('[data-act]');if(!t)return;
+ const a=t.dataset.act,id=+t.dataset.id,c=C(id),T=S.timer;
+ switch(a){
+ case'view':S.view=t.dataset.v;save();render();window.scrollTo(0,0);break;
+ case'fl':FL=t.dataset.v;render();break;
+ case'nomt':if(c.imm)return toast(c.name+' is immune and cannot be nominated');c.nom=!c.nom;commit(c.name+(c.nom?' nominated':' nomination removed'));toast(c.name+(c.nom?' nominated':' removed from nominees'));break;
+ case'nomadd':{const x=C(+$('#nsel').value);if(!x)return toast('No eligible contestant');x.nom=true;commit(x.name+' nominated');toast(x.name+' nominated');break}
+ case'pts':{const d=+t.dataset.d;ask((d>0?'Give points to ':'Deduct points from ')+esc(c.name),`<input id="pv" type="number" min="1" value="10"><div class="amts" style="margin-top:8px">${[5,10,20,50].map(v=>`<button class="btn" data-act="amt" data-v="${v}">${v}</button>`).join('')}</div>`,d>0?'Give points':'Deduct points',()=>{const n=Math.abs(parseInt($('#pv').value)||0);if(!n){toast('Enter a number above 0');return false}c.pts=Math.max(0,c.pts+d*n);commit(`${d>0?'+':'-'}${n} points: ${c.name}`);toast(`${d>0?'+':'-'}${n} points for ${c.name}`)},d<0);break}
+ case'amt':$('#pv').value=t.dataset.v;break;
+ case'evict':ask('Evict '+esc(c.name)+'?','Evicted contestants are removed from the house and the leaderboard. This cannot be undone here.','Evict',()=>{c.st='evicted';c.nom=false;c.imm=false;if(S.cap===c.id)S.cap=null;commit(c.name+' evicted');toast(c.name+' has been evicted')},true);break;
+ case'cap':S.cap=id;commit(c.name+' is the House Captain');toast(c.name+' is now House Captain');break;
+ case'imm':c.imm=!c.imm;if(c.imm)c.nom=false;commit(c.name+(c.imm?' granted immunity':' immunity revoked'));toast(c.name+(c.imm?' is now immune':' is no longer immune'));break;
+ case'tadd':{const ti=$('#nt').value.trim();if(!ti)return toast('Enter a task title');S.tasks.push({id:Math.max(0,...S.tasks.map(x=>x.id))+1,title:ti,desc:$('#nd').value.trim()||'No description',who:$('#nw').value,done:false});commit('Task assigned: '+ti);toast('Task assigned');break}
+ case'tdone':{const k=S.tasks.find(x=>x.id===id);k.done=true;commit('Task completed: '+k.title);toast('Task marked complete');break}
+ case'tre':S.tasks.find(x=>x.id===id).done=false;commit('Task reopened');break;
+ case'tact':S.active=id;commit('Active task: '+S.tasks.find(x=>x.id===id).title);break;
+ case'tgo':if(T.run){T.left=Math.max(0,Math.ceil((T.end-Date.now())/1000));T.run=false;log('Timer paused')}else{if(T.left<=0)T.left=T.total;T.end=Date.now()+T.left*1000;T.run=true;log('Timer started')}save();render();break;
+ case'trst':T.run=false;T.left=T.total;commit('Timer reset');break;
+ case'tset':{const m=Math.max(1,Math.min(600,parseInt($('#tmin').value)||45));T.total=T.left=m*60;T.run=false;commit('Timer set to '+m+' min');break}
+ case'tpl':$('#draft').value=t.dataset.v;S.draft=t.dataset.v;$('#dcnt').textContent=S.draft.length+' / 200';save();break;
+ case'bcast':{const x=($('#draft').value||'').trim();if(!x)return toast('Write an announcement first');const tm=ist({hour12:false,hour:'2-digit',minute:'2-digit'});S.ann.unshift({t:x,ts:Date.now(),time:tm});S.banner={t:x,ts:Date.now()};S.draft='';commit('Broadcast sent');toast('Announcement broadcast to the house');tick();break}
+ case'bclose':S.banner=null;save();tick();break;
+ case'mok':if(mcb&&mcb()===false)return;closeM();break;
+ case'mx':closeM();break;
+ case'reset':ask('Reset house data?','This restores the demo contestants, tasks and scores.','Reset',()=>{S=seed();commit();toast('House reset')},true);break;
+ }
+});
+document.addEventListener('input',e=>{
+ if(e.target.id==='draft'){S.draft=e.target.value;$('#dcnt').textContent=S.draft.length+' / 200';save()}
+ if(e.target.id==='q'){Q=e.target.value.toLowerCase();$('#grid').innerHTML=cards()}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeM();if(e.key==='Enter'&&$('#modal').classList.contains('on')&&e.target.id==='pv')$('[data-act=mok]').click()});
+render();tick();
+</script>
+</body>
+</html>
